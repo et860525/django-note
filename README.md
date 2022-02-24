@@ -1,5 +1,7 @@
 # Django
 
+![django](https://user-images.githubusercontent.com/21663254/155492556-bf75541c-1668-4629-85c2-8dff27e7d9be.png)
+
 ## Django 簡介
 
 Django是一個由Python寫成的Web應用框架。採用MTV(model-template-views)的設計模式，即為`模型(Model)`、`視圖(views)`、`模板(templates)`。
@@ -499,3 +501,5 @@ def post_detail_view(request, post_id):
   ```
 
 上面帶有`{% %},{{ }}`為[Jinja2](https://jinja.palletsprojects.com/)網頁模板，非常方便能獲取views傳來的資料，也能運用在邏輯與for迴圈，甚至能重複運用以寫過的程式碼，十分的方便易學。
+
+## Form
