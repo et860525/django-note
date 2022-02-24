@@ -427,7 +427,7 @@ urlpatterns = [
 
 ```python
 # blog.views
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Post
 
 # Create your views here.
@@ -436,13 +436,15 @@ def index_view(request):
     return render(request, 'blog/index.html', {'post_list': post_list})
 
 def post_detail_view(request, post_id):
-    post = Post.objects.get(id=post_id)
+    post = get_object_or_404(Post, id=post_id)
     return render(request, 'blog/post.html', {'post': post})
 ```
 
 * `index_view`：把資料庫裡相應的資料提出來，並且依據發布日期來排序(order_by)，再把資料傳給`index.html`使用。
 
 * `post_detail_view`：與`index_view`雷同，不過它可以獲得該url轉換器所轉換的值，這邊會依據輸入值的不同，會回傳不同的結果。
+
+* `get_object_or_404`當從資料庫回傳的資料是空的，則會把頁面導到404(Debug=False)。
 
 ### Templates.py
 
@@ -496,4 +498,4 @@ def post_detail_view(request, post_id):
   </html>
   ```
 
-上面帶有`{% %},{{}}`為[Jinja2](https://jinja.palletsprojects.com/)網頁模板，非常方便能獲取views傳來的資料，也能運用在邏輯與for迴圈，甚至能重複運用以寫過的程式碼，十分的方便易學。
+上面帶有`{% %},{{ }}`為[Jinja2](https://jinja.palletsprojects.com/)網頁模板，非常方便能獲取views傳來的資料，也能運用在邏輯與for迴圈，甚至能重複運用以寫過的程式碼，十分的方便易學。
