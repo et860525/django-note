@@ -8,5 +8,15 @@
 </head>
 <body>
 	<h1>The Index</h1>
+	{% if post_list %}
+		{% for post in post_list %}
+		<div class="post">
+			<h2><a href="{% url 'blog:post_detail' post.id %}">{{ post.headline }}</a></h2>
+			<p>time: {{ post.pub_date }}</p>
+		</div>
+		{% endfor %}
+	{% else %}
+		<h2>No Post</h2>
+	{% endif %}
 </body>
 </html>

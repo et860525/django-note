@@ -158,7 +158,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'blog, 
+    'blog', 
 ]
 ```
 
@@ -185,6 +185,8 @@ urlpatterns = [
   path('',include('blog.urls')),
 ]
 ```
+
+當使用者對Django發送URL請求，Django會把該app的urls都跑一遍(urlpatterns)，如果與發送的url相同，則會呼叫該url設定views來進行下一步。
 
 之後在`blog`app文件夾裡建立一個新的文件`urls.py`
 
@@ -392,3 +394,106 @@ def index_view(request):
 ```
 
 進入[http://127.0.0.1:8000/](http://127.0.0.1:8000/admin/)，就會看到結果。
+
+## URLconf
+
+現階段的URL都是只回傳特定的`views`，如果今天要進入部落格的各個文章裡，就要設定URLconf
+
+```python
+# blog.urls
+from django.urls import path
+from . import views
+
+app_name = 'blog'
+urlpatterns = [
+    path('', views.index_view, name='index'),
+    path('post/<int:post_id>/', views.post_detail_view, name='post_detail')
+]
+```
+
+獲取所設定的格式獲得相對應得值，此功能為`Path converters`，以下是該轉換器所支援的型別：
+
+* str
+* int
+* slug
+* uuid
+* path
+
+`注意`：到`Django admin`裡面建立一個以上的`post`來做測試，
+
+### views.py
+
+對`views.py`做更改與新增
+
+```python
+# blog.views
+from django.shortcuts import render
+from .models import Post
+
+# Create your views here.
+def index_view(request):
+    post_list = Post.objects.order_by('-pub_date')
+    return render(request, 'blog/index.html', {'post_list': post_list})
+
+def post_detail_view(request, post_id):
+    post = Post.objects.get(id=post_id)
+    return render(request, 'blog/post.html', {'post': post})
+```
+
+* `index_view`：把資料庫裡相應的資料提出來，並且依據發布日期來排序(order_by)，再把資料傳給`index.html`使用。
+
+* `post_detail_view`：與`index_view`雷同，不過它可以獲得該url轉換器所轉換的值，這邊會依據輸入值的不同，會回傳不同的結果。
+
+### Templates.py
+
+接下來我們要新增`post.html`與更改`index.html`文件。
+
+* 修改`index.html`
+
+  ```html
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+  </head>
+  <body>
+    <h1>The Index</h1>
+    {% if post_list %}
+      {% for post in post_list %}
+      <div class="post">
+        <h2><a href="{% url 'blog:post_detail' post.id %}">{{ post.headline }}</a></h2>
+        <p>time: {{ post.pub_date }}</p>
+      </div>
+      {% endfor %}
+    {% else %}
+      <h2>No Post</h2>
+    {% endif %}
+  </body>
+  </html>
+  ```
+
+  `{% url 'blog:post_detail' post.id %}`：使用`{% url %}`函數可以簡單的連結到各個url，`blog`為這個app的名字；`post_detail`是該url的名稱；`post.id`是各個post的id。
+
+* 新增`post.html`
+
+  ```html
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post</title>
+  </head>
+  <body>
+    <h1>{{ post.headline }}</h1>
+    <p>{{ post.pub_date }}</p>
+    <p>{{ post.body }}</p>
+  </body>
+  </html>
+  ```
+
+上面帶有`{% %},{{}}`為[Jinja2](https://jinja.palletsprojects.com/)網頁模板，非常方便能獲取views傳來的資料，也能運用在邏輯與for迴圈，甚至能重複運用以寫過的程式碼，十分的方便易學。
