@@ -8,6 +8,11 @@
 </head>
 <body>
 	<h1>The Index</h1>
+	<form method="POST">
+		{% csrf_token %}
+		{{ form.as_p }}
+		<button type="submit">Search</button>
+	</form>
 	{% if post_list %}
 		{% for post in post_list %}
 		<div class="post">

@@ -503,3 +503,89 @@ def post_detail_view(request, post_id):
 上面帶有`{% %},{{ }}`為[Jinja2](https://jinja.palletsprojects.com/)網頁模板，非常方便能獲取views傳來的資料，也能運用在邏輯與for迴圈，甚至能重複運用以寫過的程式碼，十分的方便易學。
 
 ## Form
+
+表格能讓使用者使用輸入資料的方式，來與網站做互動。這邊展示一個簡單的文章搜尋器，使用表格輸入該文章的標題，把與之有相同文字的標題顯示出來。
+
+首先，先在App文件夾裡製作一個新的文件名為`form.py`(與`urls.py`相同)，再來就可以新增我們想要的表格格式
+
+```python
+# blog.form
+from django import forms
+
+class HeadlineSearch(forms.Form):
+    post_headline = forms.CharField(required=False)
+```
+
+與models一樣，必須要先確定該格式。
+
+新增好以後再來新增到`views.py`
+
+```python
+from django.shortcuts import render, get_object_or_404
+from .models import Post
+from .form import HeadlineSearch
+
+# Create your views here.
+def index_view(request):
+    form = HeadlineSearch()
+    post_list = Post.objects.order_by('-pub_date')
+
+    if request.method == 'POST':
+        form = HeadlineSearch(request.POST)
+
+        if form.is_valid():
+            headline = form.cleaned_data['post_headline']
+            post_list = Post.objects.filter(headline__contains=headline)
+            context = {'post_list': post_list, 'form': form}
+            return render(request, 'blog/index.html', context)
+    else:
+        context = {'post_list': post_list, 'form': form}
+        return render(request, 'blog/index.html', context)
+    return render(request, 'blog/index.html', context)
+```
+
+首先先引入剛剛所建立的`form.py`文件的表格，`if request.method == 'POST':`當templates所request的狀態為`POST`，即為表格被提交，由`views`來驗證該表格輸入的資料是否有效，如果有效，即使用`filter`來篩選有相同文字的文章標題並且回傳。
+
+`注意`：filter是硬性的搜尋，即為輸入的資料必須相同才會回傳，`__contains`就是告訴filter，只要有相同的字元就能回傳。
+
+更改`index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Index</title>
+  </head>
+  <body>
+    <h1>The Index</h1>
+    <form method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Search</button>
+    </form>
+    {% if post_list %}
+      {% for post in post_list %}
+      <div class="post">
+        <h2><a href="{% url 'blog:post_detail' post.id %}">{{ post.headline }}</a></h2>
+        <p>time: {{ post.pub_date }}</p>
+      </div>
+      {% endfor %}
+    {% else %}
+      <h2>No Post</h2>
+    {% endif %}
+  </body>
+</html>
+```
+
+* `{% csrf_token %}`：CSRF 全名 Cross-Site Request Forgery，為跨站請求攻擊或跨站偽造請求，通常是在 Web 應用程式站外的其他頁面中，包括惡意程式碼或鏈結，當使用者已通過驗證且會話（Session）未過期時，瀏覽該頁面或點選該惡意鏈結，就會造成攻擊成功的可能性。
+
+* `{{ form.as_p }}`：不只有`as_p`可以使用，目前有三種方式可以解析form
+
+  * as_table
+  * as_p
+  * as_ul
+
+## Static file
