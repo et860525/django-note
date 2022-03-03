@@ -1,27 +1,31 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="{% static 'css/style.css' %}">
 	<title>Index</title>
 </head>
 <body>
-	<h1>The Index</h1>
-	<form method="POST">
-		{% csrf_token %}
-		{{ form.as_p }}
-		<button type="submit">Search</button>
-	</form>
-	{% if post_list %}
-		{% for post in post_list %}
-		<div class="post">
-			<h2><a href="{% url 'blog:post_detail' post.id %}">{{ post.headline }}</a></h2>
-			<p>time: {{ post.pub_date }}</p>
-		</div>
-		{% endfor %}
-	{% else %}
-		<h2>No Post</h2>
-	{% endif %}
+	<div class="post-list-content">
+		<h1 style="text-align: center">The Index</h1>
+		<form method="POST">
+			{% csrf_token %}
+			{{ form.as_p }}
+			<button type="submit">Search</button>
+		</form>
+		{% if post_list %}
+			{% for post in post_list %}
+			<div class="post">
+				<h2><a href="{% url 'blog:post_detail' post.id %}">{{ post.headline }}</a></h2>
+				<p>time: {{ post.pub_date }}</p>
+			</div>
+			{% endfor %}
+		{% else %}
+			<h2>No Post</h2>
+		{% endif %}
+	</div>
 </body>
 </html>

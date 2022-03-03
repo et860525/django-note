@@ -589,3 +589,104 @@ def index_view(request):
   * as_ul
 
 ## Static file
+
+在預設情況下，管理Static files的參數已經寫入於`settings.py`
+
+```python
+INSTALLED_APPS = [
+    #...
+    'django.contrib.staticfiles',
+]
+
+# other configs
+STATIC_URL = 'static/'
+```
+
+首先，在app裡加入`static`文件夾，並根據文件的種類分別(css,js,images...)
+
+```text
+django_basic/
+    manage.py
+    django_basic/
+    blog/
+        admin.py
+        apps.py
+        models.py
+        tests.py
+        views.py
+        __init__.py
+        migrations/
+        static/
+          css/
+            style.css
+          images/
+          js/
+        templates/
+          blog/
+```
+
+讓`templates`使用這些靜態文件
+
+`index.html`
+
+```html
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- other code -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <title>Index</title>
+</head>
+```
+
+### 部屬時使用Static file
+
+`django.contrib.staticfiles`只有在`DEBUG=True`時才會運行，這表示當網站部屬時(`DEBUG=Fals`)，`staticfiles`會失效，為解決這個問題，必須更改相關文件檔
+
+首先，先在`settings.py`設定`STATIC_ROOT`、`STATICFILES_DIRS`
+
+```python
+import os
+
+DEBUG = False # 部屬時，Debug為False
+#...
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+```
+
+設定`urls.py`
+
+```python
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = [
+    # ... the rest of your URLconf goes here ...
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+```
+
+都完成後，在終端機輸入以下指令，並會在專案文件夾下產生一個`staticfiles`文件夾(根據`STATIC_ROOT`路徑產生)，他會將所有有註冊app的靜態文件夾，進行複製到該`staticfiles`
+
+```python
+python manage.py collectstatic
+```
+
+如果這時候運行伺服器，你會發現，靜態文件還是處於失效的狀態。原因是因為你還需要一個Web伺服器(`uWSGI`、`gunicorn`、`Nginx`...)。
+
+這裡我們使用簡單的`whiteNoise`來當伺服器示範
+
+`pip install whitenoise`
+
+```python
+setting.py
+MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    #...
+]
+```
+
+再次運行伺服器，就會看到靜態文件確實的套用了。
