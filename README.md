@@ -658,6 +658,9 @@ STATICFILES_DIRS = [
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 ```
 
+* `STATICFILES_DIRS`: 可以把它看成Global的靜態文件，讓所有app都能使用
+* `STATIC_ROOT`: collectstatic指令產生的路徑參考
+
 設定`urls.py`
 
 ```python
